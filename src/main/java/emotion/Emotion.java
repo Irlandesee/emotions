@@ -2,76 +2,34 @@ package emotion;
 
 public class Emotion {
 
-    public enum Emotion_type{
-        SUBLIMITY,
-        VITALITY,
-        UNEASE,
-    }
 
-    public enum Emotion_subtype{
-        WONDER,
-        TRANSCENDENCE,
-        TENDERNESS,
-        NOSTALGIA,
-        PEACEFULNESS,
-        ENERGY,
-        JOYFUL_ACTIVATION,
-        TENSION,
-        SADNESS
-    }
 
-    public enum Emotion_name{
-        happy,
-        amazed,
-        dazzled,
-        allured,
-        moved,
-        inspired,
-        feeling_of_transcendence,
-        feeling_of_spirituality,
-        thrills,
-        in_love,
-        affectionate,
-        sensual,
-        tender,
-        softened_up,
-        sentimental,
-        dreamy,
-        nostalgic,
-        melancholic,
-        calm,
-        relaxed,
-        serene,
-        soothed,
-        meditative,
-        energetic,
-        triumphant,
-        fiery,
-        strong,
-        heroic,
-        stimulated,
-        joyful,
-        animated,
-        dancing,
-        amused,
-        agitated,
-        nervous,
-        impatient,
-        irritated,
-        sad,
-        sorrowful
+    private String id;
+    private String type;
+    private String subtype;
+    private String name;
 
-    }
-
-    private String emotion_id;
-    private Emotion_type generalType;
-    private Emotion_subtype subtype;
-    private Emotion_name emotionName;
     private float emotion_intensity;
     private float emotion_subtype_intensity;
 
-    public Emotion(){}
+    public Emotion(String emotion_id,String emotionName, String emotionSubtype, String emotionType){
+        this.id = emotion_id;
+        this.name = emotionName;
+        this.subtype = emotionSubtype;
+        this.type = emotionType;
+    }
 
+    public String[] getValues(){
+        String[] values = new String[4];
+        values[0] = id;
+        values[1] = name;
+        values[2] = subtype;
+        values[3] = type;
+        return values;
+    }
 
+    public String toString(){
+        return id + " " + name + " " + subtype + " " + type;
+    }
 
 }

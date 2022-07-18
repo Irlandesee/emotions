@@ -52,4 +52,18 @@ public class DBHandler {
        return true;
     }
 
+    public boolean execute_insert_emotions(String[] params){
+        String query = "insert into emotion values(?, ?, ?, ?)";
+        try{
+            PreparedStatement statement = con.prepareStatement(query);
+            System.out.println(Arrays.toString(params));
+            statement.setString(1, params[0]);
+            statement.setString(2, params[1]);
+            statement.setString(3, params[2]);
+            statement.setString(4, params[3]);
+            ResultSet rSet = statement.executeQuery();
+        }catch(SQLException sqle){sqle.printStackTrace(); return false;}
+        return true;
+    }
+
 }
