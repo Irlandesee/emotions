@@ -2,20 +2,23 @@ import java.io.*;
 import java.math.BigInteger;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.Arrays;
-import java.util.LinkedList;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.LinkedBlockingQueue;
 
 import DatabaseHandler.DBHandler;
 import Song.Song;
+import Song.Genre;
 import emotion.Emotion;
 
 import java.sql.*;
-import java.util.Properties;
-import java.util.Random;
 
 public class Main {
 
     private final static String pathToData = "/Users/mattiamac/Documents/GitHub/emotions/data/";
+    private final static String firstGenreFile = "msd_tagtraum_cd1.cls";
+    private final static String secondGenreFile = "msd_tagtraum_cd2.cls";
+    private final static String thirdGenreFile = "msd_tagtraum_cd2c.cls";
 
     private static Connection getConnection() throws SQLException{
         final String url = "jdbc:postgresql://localhost/emotions";
@@ -26,18 +29,19 @@ public class Main {
         return DriverManager.getConnection(url, props);
     }
 
-    private static LinkedList<Song> getSongsFromFile(String path, String fileName){
+    private static ConcurrentHashMap<String, Song> getSongsFromFile(String path, String fileName){
         File inputFile = new File(path, fileName);
-        LinkedList<Song> data = new LinkedList<Song>();
+        ConcurrentHashMap<String, Song> dataMap = new ConcurrentHashMap<String, Song>();
         try{
             BufferedReader bReader = new BufferedReader(new FileReader(inputFile));
             String s = "";
             while((s = bReader.readLine()) != null){
                 String[] tokens = s.split("<SEP>");
-                data.add(new Song(Integer.parseInt(tokens[0]), tokens[1], tokens[2], tokens[3]));
+                dataMap.put(tokens[1], new Song(Integer.parseInt(tokens[0]), tokens[1], tokens[2], tokens[3]));
             }
+            bReader.close();
         }catch(IOException ioe){ioe.printStackTrace();}
-        return data;
+        return dataMap;
     }
 
 
@@ -50,6 +54,7 @@ public class Main {
             while((s = bReader.readLine()) != null){
                 emotions.add(s);
             }
+            bReader.close();
         }catch(IOException ioe){ioe.printStackTrace();}
         return emotions;
     }
@@ -101,6 +106,7 @@ public class Main {
                 Emotion e = new Emotion(data[0], data[1], data[2], data[3]);
                 emotions.add(e);
             }
+            bReader.close();
         }catch(IOException ioe){ioe.printStackTrace();}
         return emotions;
     }
@@ -117,6 +123,59 @@ public class Main {
         return hashedEmotion;
     }
 
+    private static String hashString(String s){
+        String hashedString = "";
+        try{
+            MessageDigest md = MessageDigest.getInstance("MD5");
+            byte[] digest = md.digest(s.getBytes("UTF-8"));
+            BigInteger bi = new BigInteger(1, digest);
+            hashedString = bi.toString(16);
+        }catch(NoSuchAlgorithmException | UnsupportedEncodingException e){e.printStackTrace();}
+        return hashedString;
+    }
+
+
+    //returns a linked list containing Strings like:
+    //track_id genre_1 genre_2
+    private static LinkedList<String> readTrackGenre(String path, String filename){
+        LinkedList<String> tracksWithGenre = new LinkedList<String>();
+        try{
+            BufferedReader bReader = new BufferedReader(new FileReader(new File(path, filename)));
+            String s = "";
+            while((s = bReader.readLine()) != null){
+                tracksWithGenre.add(s);
+            }
+        }catch(IOException ioe){ioe.printStackTrace();}
+        return tracksWithGenre;
+    }
+
+    private static Song setSongGenres(Song s, String[] values){
+        //TODO
+        return null;
+    }
+
+
+
+    private static ConcurrentHashMap<String, Song> buildSongWithGenre(String path, String filename){
+        ConcurrentHashMap<String, Song> songsWithGenre = new ConcurrentHashMap<String, Song>();
+        try{
+            BufferedReader bReader = new BufferedReader(new FileReader(new File(path, filename)));
+            String s = "";
+            while((s = bReader.readLine()) != null){
+                String[] values = s.split("\t");
+                if(values.length > 2){
+                    Song song = new Song(values[0], values[1], values[1]);
+                    songsWithGenre.put(values[0], song);
+                }else{
+                    Song song = new Song(values[0], values[1], "");
+                    songsWithGenre.put(values[0], song);
+                }
+            }
+            bReader.close();
+        }catch(IOException ioe){ioe.printStackTrace();}
+        return songsWithGenre;
+    }
+
     public static void main(String args[]) throws IOException, SQLException {
         String fileName = "data.txt";
         final String url = "jdbc:postgresql://localhost/emotions";
@@ -127,50 +186,43 @@ public class Main {
         Properties prop = new Properties();
         prop.setProperty("user", "postgres");
         prop.setProperty("password", "qwerty");
-        //LinkedList<Song> songs = getSongsFromFile("/Users/mattiamac/Documents/GitHub/emotions/data/", fileName);
-        /**
+
+        ConcurrentHashMap<String, Song> songsMap = getSongsFromFile(pathToData, "data.txt");
+
+        ConcurrentHashMap<String, Song> first = buildSongWithGenre(pathToData, firstGenreFile);
+        ConcurrentHashMap<String, Song> second = buildSongWithGenre(pathToData, secondGenreFile);
+        ConcurrentHashMap<String, Song> third = buildSongWithGenre(pathToData, thirdGenreFile);
+
+        Worker w1 = new Worker(songsMap, first);
+        Worker w2 = new Worker(songsMap, second);
+        Worker w3 = new Worker(songsMap, third);
+
+        System.err.println("launching 3 threads");
+        w1.start();
+        w2.start();
+        w3.start();
+
         try{
-            DBHandler dbHandler = new DBHandler(getConnection(), url, prop);
-            for(Song s : songs){
-                dbHandler.execute_insert_query(s.getValues());
-                //String[] values = s.getValues();
-                //for(String value : values) System.out.println(value);
-            }
-        }catch(SQLException sqle){sqle.printStackTrace();}
-        **/
+            w1.join();
+            w2.join();
+            w3.join();
+        }catch(InterruptedException ie){ie.printStackTrace();}
 
-        /**
-        try{
-            DBHandler dbHandler = new DBHandler(getConnection(), url, prop);
-            String[] params = {"name", "author", "Blind Lemon Jefferson"};
-            dbHandler.execute_select_query(params);
+        System.err.println("Threads done");
 
-            System.out.println("query complete.");
-        }catch(SQLException sqle){sqle.printStackTrace();}
-        **/
-        /**
-        LinkedList<String> emotionsFromFile = getEmotionsFromFile(pathToData, "emotions.txt");
-        LinkedList<String> encodedEmotionsFromFile = getEmotionsFromFile(pathToData, "hashed_emotions.txt");
-        String randomEmotion = emotionsFromFile.get(new Random().nextInt(emotionsFromFile.size()) - 1);
-        try{
-            String encodedRandomEmotion = hashEmotion(randomEmotion);
-            System.out.println("Random emotion: " + randomEmotion);
-            System.out.println("Encoded Random emotion: " + encodedRandomEmotion);
-            boolean found = findEmotion(encodedEmotionsFromFile, encodedRandomEmotion);
-            if(!found) System.out.println("NoSuchEmotion");
-            else System.out.println("Emotion found");
-        }catch(NoSuchAlgorithmException nsae){nsae.printStackTrace();}
-         **/
+        ConcurrentHashMap<String, Song> songsFound_1 = w1.getSongsFound();
+        ConcurrentHashMap<String, Song> songsFound_2 = w2.getSongsFound();
+        ConcurrentHashMap<String, Song> songsFound_3 = w3.getSongsFound();
 
-        LinkedList<Emotion> emotions = readCompleteEmotions(pathToData, "emotion_complete.csv", ",");
-        for(Emotion e : emotions){
-            try{
-                DBHandler dbHandler = new DBHandler(getConnection(), url, prop);
-                dbHandler.execute_insert_emotions(e.getValues());
-            }catch(SQLException sqle){sqle.printStackTrace();}
-        }
+        ConcurrentHashMap<String, Song> completeSongs = new ConcurrentHashMap<String, Song>();
+        for(String s : songsFound_1.keySet()) completeSongs.put(s, songsFound_1.get(s));
+        for(String s : songsFound_2.keySet()) completeSongs.put(s, songsFound_2.get(s));
+        for(String s : songsFound_3.keySet()) completeSongs.put(s, songsFound_3.get(s));
 
-        System.out.println("Done");
+
+        
+
+        System.err.println("Done");
 
 
     }

@@ -8,8 +8,19 @@ public class Song {
     private String name;
     private int pub_date;
     private String author;
+    private String album;
+    private String majority_genre;
+    private String minority_genre;
 
-    public Song(){}
+    public Song(String code){
+        this.code = code;
+    }
+
+    public Song(String code, String majority_genre, String minority_genre){
+        this.code = code;
+        this.majority_genre = majority_genre;
+        this.minority_genre = minority_genre;
+    }
 
     public Song(int pub_date, String code, String author, String name){
         this.code = code;
@@ -22,6 +33,28 @@ public class Song {
     public String getName(){return this.name;}
     public int getPub_date(){return this.pub_date;}
     public String getAuthor(){return this.author;}
+
+    public String getAlbum(){return this.album;}
+    public void setAlbum(String album){this.album = album;}
+
+    public String getMajority_genre(){return this.majority_genre;}
+    public String getMinority_genre(){return this.minority_genre;}
+
+    public void setMajority_genre(String majority_genre){this.majority_genre = majority_genre;}
+    public void setMinority_genre(String minority_genre){this.minority_genre = minority_genre;}
+
+
+    public String[] getGenres(){
+        if(this.minority_genre != null){
+            String[] genres =  new String[2];
+            genres[0] = this.majority_genre;
+            genres[1] = this.minority_genre;
+            return genres;
+        }
+        String[] genres = new String[1];
+        genres[0] = this.majority_genre;
+        return genres;
+    }
 
     public String[] getValues(){
         String[] values = new String[4];
@@ -38,7 +71,10 @@ public class Song {
     }
 
     public String toString(){
-        return this.getName() + " " + this.getAuthor() + " " + this.getCode() + " " + this.getPub_date();
+        if(this.getMinority_genre() != null)
+            return this.getName() + " " + this.getAuthor() + " " + this.getCode() + " " + this.getPub_date() + " " + this.getMajority_genre() + " " + this.getMinority_genre();
+        else
+            return this.getName() + " " + this.getAuthor() + " " + this.getCode() + " " + this.getPub_date() + " " + this.getMajority_genre();
     }
 
 

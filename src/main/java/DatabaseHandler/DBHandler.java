@@ -66,4 +66,18 @@ public class DBHandler {
         return true;
     }
 
+    //wrong
+    public boolean execute_insert_complete_songs(String[] params, String author){
+        String query = "insert into song (majority_genre, minority_genre) values(?, ?) where author = ?";
+        try{
+            PreparedStatement statement = con.prepareStatement(query);
+            System.out.println(Arrays.toString(params));
+            statement.setString(1, params[0]);
+            statement.setString(2, params[1]);
+            statement.setString(3, author);
+            ResultSet rSet = statement.executeQuery();
+        }catch(SQLException sqle){sqle.printStackTrace(); return false;}
+        return true;
+    }
+
 }
