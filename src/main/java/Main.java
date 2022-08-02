@@ -176,6 +176,20 @@ public class Main {
         return songsWithGenre;
     }
 
+    private static ConcurrentHashMap<String, Song> readSongsFile(String path, String filename){
+        ConcurrentHashMap<String, Song> songs = new ConcurrentHashMap<String, Song>();
+        try{
+            BufferedReader bReader = new BufferedReader(new FileReader(new File(path, filename)));
+            String line = "";
+            while((line = bReader.readLine()) != null){
+                String[] values = line.split( ",");
+                Song s = new Song(values);
+                songs.put(s.getCode(), s);
+            }
+        }catch(IOException ioe){ioe.printStackTrace();}
+        return songs;
+    }
+
     public static void main(String args[]) throws IOException, SQLException {
         String fileName = "data.txt";
         final String url = "jdbc:postgresql://localhost/emotions";
@@ -187,40 +201,12 @@ public class Main {
         prop.setProperty("user", "postgres");
         prop.setProperty("password", "qwerty");
 
-        ConcurrentHashMap<String, Song> songsMap = getSongsFromFile(pathToData, "data.txt");
-
-        ConcurrentHashMap<String, Song> first = buildSongWithGenre(pathToData, firstGenreFile);
-        ConcurrentHashMap<String, Song> second = buildSongWithGenre(pathToData, secondGenreFile);
-        ConcurrentHashMap<String, Song> third = buildSongWithGenre(pathToData, thirdGenreFile);
-
-        Worker w1 = new Worker(songsMap, first);
-        Worker w2 = new Worker(songsMap, second);
-        Worker w3 = new Worker(songsMap, third);
-
-        System.err.println("launching 3 threads");
-        w1.start();
-        w2.start();
-        w3.start();
-
-        try{
-            w1.join();
-            w2.join();
-            w3.join();
-        }catch(InterruptedException ie){ie.printStackTrace();}
-
-        System.err.println("Threads done");
-
-        ConcurrentHashMap<String, Song> songsFound_1 = w1.getSongsFound();
-        ConcurrentHashMap<String, Song> songsFound_2 = w2.getSongsFound();
-        ConcurrentHashMap<String, Song> songsFound_3 = w3.getSongsFound();
-
-        ConcurrentHashMap<String, Song> completeSongs = new ConcurrentHashMap<String, Song>();
-        for(String s : songsFound_1.keySet()) completeSongs.put(s, songsFound_1.get(s));
-        for(String s : songsFound_2.keySet()) completeSongs.put(s, songsFound_2.get(s));
-        for(String s : songsFound_3.keySet()) completeSongs.put(s, songsFound_3.get(s));
 
 
-        
+
+
+        ConcurrentHashMap<String, Song> songs = readSongsFile(pathToData, "complete_songs.csv");
+        for(Song s : songs.values()) System.out.println(s.toString());
 
         System.err.println("Done");
 

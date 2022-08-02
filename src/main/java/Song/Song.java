@@ -29,6 +29,24 @@ public class Song {
         this.author = author;
     }
 
+    /**
+     *  values:
+     *  0: song name
+     *  1: Author
+     *  2: song_code
+     *  3: pub_date
+     *  4: majority_genre
+     *  5: minority_genre
+     */
+    public Song(String[] values){
+        this.name = values[0];
+        this.author = values[1];
+        this.code = values[2];
+        this.pub_date = Integer.parseInt(values[3]);
+        this.majority_genre = values[4];
+        if(values.length > 5) this.minority_genre = values[5];
+    }
+
     public String getCode(){return this.code;}
     public String getName(){return this.name;}
     public int getPub_date(){return this.pub_date;}
@@ -72,9 +90,9 @@ public class Song {
 
     public String toString(){
         if(this.getMinority_genre() != null)
-            return this.getName() + " " + this.getAuthor() + " " + this.getCode() + " " + this.getPub_date() + " " + this.getMajority_genre() + " " + this.getMinority_genre();
+            return this.getName() + "," + this.getAuthor() + "," + this.getCode() + "," + this.getPub_date() + "," + this.getMajority_genre() + "," + this.getMinority_genre();
         else
-            return this.getName() + " " + this.getAuthor() + " " + this.getCode() + " " + this.getPub_date() + " " + this.getMajority_genre();
+            return this.getName() + "," + this.getAuthor() + "," + this.getCode() + "," + this.getPub_date() + "," + this.getMajority_genre();
     }
 
 
