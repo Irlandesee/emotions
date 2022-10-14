@@ -4,17 +4,20 @@ public class Genre {
 
     private String id;
     private String name;
+    private String subGenre;
 
-    public Genre(String id, String name){
+    public Genre(String id, String genre, String subGenre){
         this.id = id;
-        this.name = name;
+        this.name = genre;
+        this.subGenre = subGenre;
     }
 
     public String getId(){return this.id;}
     public String getName(){return this.name;}
 
     public String toString(){
-        return this.id + " " + this.name;
+        if(!this.subGenre.equals("")) return this.id + " " + this.name + " " + this.subGenre;
+        else return this.id + " " + this.name;
     }
 
 }

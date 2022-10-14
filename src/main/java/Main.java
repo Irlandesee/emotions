@@ -190,6 +190,30 @@ public class Main {
         return songs;
     }
 
+
+    private static ConcurrentHashMap<String, Genre> readGenreFile(String path, String filename){
+        ConcurrentHashMap<String, Genre> genres = new ConcurrentHashMap<String, Genre>();
+
+        File inputFile = new File(path + filename);
+        try{
+            BufferedReader bReader = new BufferedReader(new FileReader(inputFile));
+            String s = "";
+            while((s = bReader.readLine()) != null){
+                String[] values = s.split("	");
+                String code = values[0];
+                String majority_genre = values[1];
+                String minority_genre = "";
+                if(values.length > 2){ // majority genre & minority genre
+                    genres.put(code, new Genre(code, majority_genre, values[2]));
+                }else{
+                    genres.put(code, new Genre(code, majority_genre, minority_genre));
+                }
+            }
+        }catch(IOException ioe){ioe.printStackTrace();}
+
+        return genres;
+    }
+
     public static void main(String args[]) throws IOException, SQLException {
         String fileName = "data.txt";
         final String url = "jdbc:postgresql://localhost/emotions";
@@ -201,12 +225,37 @@ public class Main {
         prop.setProperty("user", "postgres");
         prop.setProperty("password", "qwerty");
 
-
-
+        final String pathToDataDirectory = "/Users/mattiamac/Documents/Github/emotions/data/";
+        File input_cd1 = new File(pathToDataDirectory+ "msd_tagtraum_cd1.cls");
+        File input_cd2 = new File(pathToDataDirectory+ "msd_tagtraum_cd2.cls");
 
 
         ConcurrentHashMap<String, Song> songs = readSongsFile(pathToData, "complete_songs.csv");
-        for(Song s : songs.values()) System.out.println(s.toString());
+        //for(Song s : songs.values()) System.out.println(s.toString());
+
+
+        ConcurrentHashMap<String, Genre> genreMap_1 =
+                readGenreFile(pathToDataDirectory, "msd_tagtraum_cd1.cls");
+        ConcurrentHashMap<String, Genre> genreMap_2 =
+                readGenreFile(pathToDataDirectory, "msd_tagtraum_cd2.cls");
+
+        int commonSongs_1= 0;
+        int commonSongs_2 = 0;
+        for(String key : songs.keySet()){
+            if(genreMap_1.containsKey(key)){
+                System.out.println("Found song in genre1:\n"+songs.get(key).toString());
+                commonSongs_1++;
+            }
+            else if(genreMap_2.containsKey(key)){
+                System.out.println("Found song in genre2:\n"+songs.get(key).toString());
+                commonSongs_2++;
+            }
+        }
+
+        System.out.println("Total songs: " + songs.size());
+        System.err.println("Common songs in 1: " +commonSongs_1);
+        System.err.println("Common songs in 2: " +commonSongs_2);
+
 
         System.err.println("Done");
 
